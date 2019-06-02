@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>9*9=81</title>
+		<style> 
+			*::selection {
+				background-color: orangered;
+				color: white;
+			}
+
+			*::-moz-selection {
+				background-color: orangered;
+				color: white;
+			}
+
+			*::-webkit-selection {
+				background-color: orangered;
+				color: white
+			}
+			*{
+				/** Reset the style to be IE-ish. **/
+				font-family: monospace,"Arial","Tahoma","Verdana";
+				font-size: 12px;
+			}
+			tr{
+				/** text-align: center; **/
+			}
+			td.bo{
+				border-width: 1px;
+				border-style: solid;
+				border-color: #000 #444;
+				cursor: help;
+				width:65px;
+				height:10px;
+			}
+			.right-side {
+				display: inline-block;
+			}
+			h1, h2, h3 {
+				text-align: center;
+				font-weight: normal;
+				font-size: 120%;
+				font-family: "Microsoft YaHei";
+			}
+			small {
+				display: inline-block;
+				font-size: 70%;
+			}
+			button {
+				color: buttontext;
+				background-color: red;
+				appearance: slider-horizontal;
+				-moz-appearance: slider-horizontal;
+				-webkit-appearance: slider-horizontal;
+			}
+			table {
+				border-collapse: collapse;
+			}
+		</style>
+	</head>
+	<body>
+		<script>
+			function rnd(min, max){
+				var num = Math.random() * (max - min) + min;
+				num = parseInt(num, 10);
+				return num;
+			}
+		</script>
+		<h1>
+			现在给我背诵乘法口诀！！！
+			<small>
+				不会背罚抄
+				<script>
+					document.write(rnd(50, 100 + 1));
+				</script>
+				遍。 --你的数学老师
+			</small>
+			<br />
+			<button onclick="return onModeSwitchClicked();">按一下瞬间爆炸</button> <noscript><small>请启用 JavaScript</small></noscript>
+		</h1>
+		<audio 
+			style="width:150px;height:20px"
+			id="speak"
+			controls="controls" preload>
+		</audio>
+		<script>
+			var oTab;
+			var oBody;
+			
+			var mode = "";
+			var modeTrue = (mode != "han"); // true: Arabic; false: Chinese.
+			
+			function speak(element){
+				console.log(element.path[0]);
+				var spk = document.getElementById("speak");
+				var url = "https://ss0.baidu.com/" 
+						+ "6KAZsjip0QIZ8tyhnq/text2audio"
+						+ "?tex=" + encodeURIComponent(element.path[0].innerHTML)
+						+ "&cuid=dict&lan=ZH&ctp=1&pdt=30&vol=7&spd=6";
+				console.log(url);
+				spk.url = url;
+				spk.play();
+			}
+			
+			// Edited version of https://blog.csdn.net/zr15829039341/article/details/81511475
+			function convertNumbers(section){
+				var chnNumChar = ["零","一","二","三","四","五","六","七","八","九"];
+				var chnUnitChar = ["","十","百","千","万","","",""];
+				var strIns = '', chnStr = '';
+				var unitPos = 0;
+				var zero = true;
+				while(section > 0){
+					var v = section % 10;
+					if(v === 0){
+						if(!zero){
+						   zero = true;
+						   chnStr = chnNumChar[v] + chnStr;
+						}
+					}else{
+						zero = false;
+						if (!(chnNumChar[v] == "一" && chnUnitChar[unitPos] == "十")) {
+							strIns = chnNumChar[v];
+						} else {
+							strIns = ''; // sort of silly...
+						}
+						strIns += chnUnitChar[unitPos];
+						chnStr = strIns + chnStr;
+					}
+					unitPos++;
+					section = Math.floor(section / 10);
+				}
+				return chnStr;
+			}
+			function loadContent(){
+				oTab = document.createElement("table"); 
+				oBody = document.createElement("tbody"); 
+				for(var i=1; i<10; i++){
+					var oTr = document.createElement("tr"); 
+					for(var j=1; j<10; j++){ 
+						if (j <= i) {
+							var oTd = document.createElement("td");
+							if (!modeTrue){
+								oTd.innerHTML = (i >= 10 ? (i < j ? convertNumbers(j) + (!(convertNumbers(i * j).length >= 4) ? "" : "乘") + convertNumbers(i) : convertNumbers(i) + (!(convertNumbers(i * j).length >= 4) ? "" : "乘") + convertNumbers(j)) : convertNumbers(j) + (!(convertNumbers(i * j).length >= 4) ? "" : "乘") + convertNumbers(i))
+												+ (convertNumbers(i * j).length <= 1 ? "得" : (!(convertNumbers(i * j).length >= 4) ? "" : "得")) // Don't take it as a good example. It's silly.
+												+ convertNumbers(i * j);
+							} else {
+								oTd.innerHTML = (i >= 10 ? (i < j ? j + "*" + i : i + "*" + j) : j + "*" + i)
+												+ "=" + i * j;
+							}
+							oTr.appendChild(oTd); 
+							oBody.appendChild(oTr);
+						}
+						if(oTd){
+							oTd.classList.add("bo");
+							if (!modeTrue){
+								oTd.onclick = function(e){
+									setTimeout(function(){
+										speak(e);
+									}, 30);
+									return true;
+								};
+							}
+						}
+					}
+				}
+				oTab.appendChild(oBody); 
+				document.body.appendChild(oTab);
+			}
+			function onModeSwitchClicked(){
+				mode = (!modeTrue ? "han" : "arabic");
+				modeTrue = !modeTrue;
+				oTab.removeChild(oBody);
+				oBody = null;
+				document.body.removeChild(oTab);
+				oTab = null;
+				loadContent();
+				return true;
+			}
+			loadContent();
+		</script>
+	</body>
+</html>
